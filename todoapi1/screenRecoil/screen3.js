@@ -1,30 +1,25 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
+import { useUpdateTask, useAddTask } from '../recoil/slice'
 
-export default function Screen2({ navigation, route }) {
-  const [user, setUser] = useState(route.params.user);
-  const [note, setNote] = useState(route.params?.textUpdate?.note || '');
+export default function Screen3({ navigation, route }) {
 
-  const updateNote = async (newUser) => {
-    await fetch(`https://6572ab61192318b7db407fd7.mockapi.io/users/${user.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newUser),
-    });
-    setUser(newUser);
-  };
+  const [note, setNote] = useState(route.params?.textUpdate || '');
+  const addTask = useAddTask();
+  const updateTask = useUpdateTask();
 
   const addNotes = () => {
-    let updatedUser = { ...user };
     if (route.params?.textUpdate) {
-      const index = updatedUser.notes.findIndex((n) => n.id === route.params.textUpdate.id);
-      updatedUser.notes[index].note = note;
+      const newData = {
+        id: route.params?.idNote,
+        newNote:note
+      }
+      updateTask(newData)
     } else {
-      const newId = Math.max(...updatedUser.notes.map((n) => n.id)) + 1;
-      updatedUser.notes.push({ id: newId, note });
+      addTask(note)
     }
-    updateNote(updatedUser);
-    navigation.navigate('screen2', { user: updatedUser });
+    
+    navigation.navigate('screen2');
   };
 
   return (

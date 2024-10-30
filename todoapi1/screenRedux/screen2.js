@@ -9,70 +9,25 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch ,useSelector} from 'react-redux';
 import { deleteTask } from '../redux_toolkit/userSlice';
 
-export default function Screen3({ route, navigation }) {
-  const { user } = route.params;
-  console.log(user.id)
-  const [notesALL, setNotesALL] = useState(user.notes);
-  const [notes, setNotes] = useState(user.notes);
-  const [searchNote, setSearchNote] = useState('');
-  const dispatch = useDispatch();
-
-  // Search filter logic
-  useEffect(() => {
-    if (searchNote === '') {
-      setNotes(notesALL);
-    } else {
-      const filteredNotes = notesALL.filter((note) =>
-        note.note.toLowerCase().includes(searchNote.toLowerCase())
-      );
-      setNotes(filteredNotes);
-    }
-  }, [searchNote, notesALL]);
-
-const previousNotes = [...notesALL]; // Lưu trước khi cập nhật state
-const [loading, setLoading] = useState(false);
-
-async function deleteNote(noteId) {
-  const updatedNotes = notesALL.filter((note) => note.id !== noteId);
-  setNotesALL(updatedNotes);
-  setNotes(updatedNotes);
-  
-  setLoading(true); // Bắt đầu loading
-
-  const url = `https://6555ccce84b36e3a431e5d74.mockapi.io/todo/${user.id}`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...user, notes: updatedNotes }),
-    });
-
-    if (!response.ok) {
-      const errorMessage = await response.text();
-      throw new Error(`Failed to update notes: ${response.status} - ${errorMessage}`);
-    }
-
-    Alert.alert('Note deleted successfully!');
-    dispatch(deleteTask({ userId: user.id, noteId }));
-  } catch (error) {
-    console.error('Error deleting note:', error.message);
-    Alert.alert('Error', 'Failed to delete the note.');
-    
-    // Khôi phục state nếu API gặp lỗi
-    setNotesALL(notesALL);
-    setNotes(notesALL);
-  } finally {
-    setLoading(false); // Kết thúc loading
+export default function Screen2({ route, navigation }) {
+  const dispatch = useDispatch()
+  const user = useSelector((state) => state.user.users)
+  const [searchNote,setSearchNote ] = useState("")
+  const [note, setNote] = useState(user.notes)
+  function deleteNote(noteId) {
+    dispatch(deleteTask(noteId))  
   }
-}
 
+  function updateNote(noteId) {
+    navigation.navigate('screen3', { noteId:noteId });
+  }
 
-
-
+  useEffect(()=>{
+    setNote(user.notes)
+  },[user])
 
   return (
     <View style={{ flex: 1 }}>
@@ -87,7 +42,7 @@ async function deleteNote(noteId) {
 
       <View style={styles.notesContainer}>
         <FlatList
-          data={notes}
+          data={note}
          keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
           renderItem={({ item }) => (
             <View style={styles.noteItem}>
@@ -98,8 +53,8 @@ async function deleteNote(noteId) {
                   style={styles.actionButton}
                   onPress={() => {
                     navigation.navigate('screen3', {
-                      notes: notes,
                       idNote: item.id,
+                      textUpdate:item.note
                     });
                   }}
                 >
@@ -118,7 +73,7 @@ async function deleteNote(noteId) {
       <View style={styles.addButtonContainer}>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => navigation.navigate('screen3', { notes: notes })}
+          onPress={() => navigation.navigate('screen3')}
         >
           <Text style={{ color: 'white' }}>+</Text>
         </TouchableOpacity>

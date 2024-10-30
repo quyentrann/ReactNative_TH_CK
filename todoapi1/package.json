@@ -12,6 +12,7 @@
     "react": "18.2.0",
     "react-native": "0.74.5",
     "redux": "^4.2.0",
+    "recoil": "*",
     "redux-saga": "*",
     "react-redux": "9.0.0",
     "@types/react": "18.2.41",

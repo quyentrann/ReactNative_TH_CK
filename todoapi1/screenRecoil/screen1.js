@@ -1,28 +1,24 @@
 import React, { useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers } from '../redux_toolkit/userSlice';
+import { useSaveData } from '../recoil/slice'
 
 export default function Screen1({ navigation }) {
-  const dispatch = useDispatch();
-  const { users, loading, error } = useSelector((state) => state.user);
-
+  const saveData = useSaveData();
   const [name, setName] = React.useState('tran');
   const [message, setMessage] = React.useState('');
 
-  useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
-
-  const checkUser = () => {
-    const user = users.find((u) => u.name === name);
-    if (!user) {
+  async function checkUser(){
+    const resp = await fetch("https://6555ccce84b36e3a431e5d74.mockapi.io/todo/");
+    const json = await resp.json();
+    const user = json.find((u) => u.name === name);
+     if (!user) {
       setMessage('User không tồn tại');
       return;
     }
     setMessage('');
+    saveData(user);
     navigation.navigate('screen2', { user });
-  };
+  }
 
   
 

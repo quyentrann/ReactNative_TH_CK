@@ -1,51 +1,52 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
-// Thunk để lấy dữ liệu user từ API
-export const fetchUsers = createAsyncThunk('user/fetchUsers', async () => {
+async function updateData(users) {
   const response = await fetch(
-    'https://6555ccce84b36e3a431e5d74.mockapi.io/todo'
+    `https://6555ccce84b36e3a431e5d74.mockapi.io/todo/${users.id}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(users),
+    }
   );
-  if (!response.ok) {
-    throw new Error('Failed to fetch users');
-  }
-  return response.json();
-});
+}
 
 const userSlice = createSlice({
   name: 'user',
   initialState: {
-    users: [],
-    loading: false,
-    error: null,
+    users: {},
   },
 
   reducers: {
     deleteTask: (state, action) => {
-      const { userId, noteId } = action.payload;
-      const userIndex = state.users.findIndex((u) => u.id === userId);
-      if (userIndex !== -1) {
-        state.users[userIndex].notes = state.users[userIndex].notes.filter(
-          (note) => note.id !== noteId
-        );
-      }
+      const noteId = action.payload;
+      state.users.notes = state.users.notes.filter(
+        (item) => item.id !== noteId
+      );
+      updateData(state.users);
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchUsers.pending, (state) => {
-        state.loading = true;
-        state.error = null; // Xóa lỗi khi bắt đầu fetch mới
-      })
-      .addCase(fetchUsers.fulfilled, (state, action) => {
-        state.loading = false;
-        state.users = action.payload;
-      })
-      .addCase(fetchUsers.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Something went wrong';
+    addTask: (state, action) => {
+      const newNote = action.payload;
+      const newId = Math.max(...state.users.notes.map((item) => Number(item.id)));
+      state.users.notes.push({
+        id: String(newId +1),
+        note: newNote,
       });
+      updateData(state.users);
+    },
+    updateTask: (state, action) => {
+      const { id, newNote } = action.payload;
+      const index = state.users.notes.findIndex((item) => item.id == id);
+      state.users.notes[index].note = newNote;
+      updateData(state.users);
+    },
+    saveData: (state, action) => {
+      state.users = action.payload;
+    },
   },
 });
 
-export const { deleteTask } = userSlice.actions;
+export const { deleteTask, updateTask, addTask, saveData } = userSlice.actions;
 export default userSlice.reducer;
